@@ -1,0 +1,4 @@
+= ore-smelter Page-1
+
+image::ore-smelter-Page-1.png[Page-1]
+
