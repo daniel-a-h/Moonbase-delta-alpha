@@ -1,11 +1,11 @@
 name: Keep draw.io export synchronized
-on: workflow_dispatch
-  #push:
-   # branches:
+on: 
+  push:
+    #branches:
     #  - main
-    #paths:
-     # - "**.drawio"
-      #- .github/workflows/drawio-export.yml
+    paths:
+      - "**.drawio"
+      - .github/workflows/drawio-export.yml
 jobs:
   drawio-export:
     runs-on: ubuntu-latest
