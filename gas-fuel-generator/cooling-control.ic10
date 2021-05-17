@@ -1,0 +1,82 @@
+define Kp 1 # proportional factor
+define Ki 0 # integral factor
+define Kd 0 # derivative factor
+
+define LowerLimit 0 # clamping lower PID output
+define UpperLimit 100 # clamping upper PID output
+
+define TicksToSkip 3 # Run PID every ticks+1
+
+# globals
+alias ErrorSum r15
+alias LastError r14
+
+alias TemperatureDial d0 # the set point
+alias GasSensor d1 # the process variable
+alias Pump d2 # actuator
+
+start:
+jal PIDInitialize
+
+loop:
+move r2 TicksToSkip
+l r0 TemperatureDial Ratio
+l r1 GasSensor Temperature
+jal PIDCompute
+s Pump Setting r0
+wait:
+yield
+sub r2 r2 1
+bgtz r2 wait
+j loop
+
+# PID
+PIDInitialize:
+move ErrorSum 0
+move LastError 0
+
+j ra
+
+PIDCompute:
+# SP in r0
+# PV in r1
+# PID return in r0
+push r10
+push r11
+push r12
+
+# Calc error (r12) and (error - LastError) (r11)
+move r12 0
+sub r12 r0 r1 # error = SP - PV
+sub r11 r12 LastError
+# Update  ErrorSum, LastError
+add ErrorSum ErrorSum r12
+move LastError r12
+
+# clamp integral
+min ErrorSum ErrorSum UpperLimit
+max ErrorSum ErrorSum LowerLimit
+
+# PID (r12) = Kp * error
+mul r12 Kp r12
+
+# PID (r12) += Kd * (error - LastError) (r11)
+mul r10 Kd r11
+add r12 r12 r10
+
+# PID += Ki * ErrorSum
+mul r10 Ki ErrorSum
+add r12 r12 r10
+
+# clamp output
+min r12 r12 UpperLimit
+max r12 r12 LowerLimit
+
+# return
+move r0 r12
+
+pop r12
+pop r11
+pop r10
+
+j ra
