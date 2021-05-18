@@ -1,0 +1,58 @@
+define insideLevel 0
+define outsideLevel 7
+
+alias elevator d0
+alias insideGasSensor d1
+alias airlockGasSensor d2
+alias insideDoor d3
+alias outsideDoor d4
+alias vent d5
+
+alias actionRequired r12
+alias targetPressure r13
+alias pressureDiff r14
+alias direction r15# 0 = out, 1 = in
+
+Init:
+s vent On 0
+s vent ExternalPressure 0
+s insideDoor Mode 1 #Control by IC
+s outsideDoor Mode 1 # Control by IC
+s insideDoor Open 0
+s outsideDoor Open 1
+s elevator ElevatorLevel outsideLevel
+#We are unpressurized and open to outside
+#elevator is on outside level
+
+Loop:
+jal DetectElevatorAction
+jal DetectDoorAction
+beqz actionRequired 2
+jal CycleAirlock
+jal UpdateDoors
+j Loop
+
+UpdateDoors:
+j ra
+
+DetectDoorAction:
+j ra
+
+CycleAirlock:
+j ra
+
+Pressurize:
+s vent ExternalPressure targetPressure
+s vent On 1
+#TODO:?
+j ra 
+
+SetTagetPressure:
+l targetPressure insideGasSensor Pressure
+mul targetPressure targetPressure 0.97 
+#Set to 97% of Target Pressure
+j ra
+
+DetectElevatorAction:
+#Check current direction, set actionRequired etc
+j ra
