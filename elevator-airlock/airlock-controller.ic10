@@ -8,10 +8,10 @@ alias insideDoor d3
 alias outsideDoor d4
 alias vent d5
 
-alias actionRequired r12
+alias cycleRequired r12 # 1 if cycle is needed
 alias targetPressure r13
-alias pressureDiff r14
-alias direction r15# 0 = out, 1 = in
+alias pressureDiff r14# 1 if there is a pressure dif
+alias direction r15# 0 = out, 1 = in, set in cycle
 
 Init:
 s vent On 0
@@ -27,25 +27,22 @@ s elevator ElevatorLevel outsideLevel
 Loop:
 jal DetectElevatorAction
 jal DetectDoorAction
-beqz actionRequired 2
+beqz cycleRequired AfterCycle
 jal CycleAirlock
-jal UpdateDoors
+AfterCycle:
+jal FinishCycle
 j Loop
 
-UpdateDoors:
+FinishCycle:
 j ra
 
 DetectDoorAction:
 j ra
 
 CycleAirlock:
+#Close and Lock doors
 j ra
 
-Pressurize:
-s vent ExternalPressure targetPressure
-s vent On 1
-#TODO:?
-j ra 
 
 SetTagetPressure:
 l targetPressure insideGasSensor Pressure
@@ -54,5 +51,9 @@ mul targetPressure targetPressure 0.97
 j ra
 
 DetectElevatorAction:
-#Check current direction, set actionRequired etc
+#Check current direction, set cycleRequired etc
+l r0 elevator ElevatorSpeed 
+beqz r0 ra# Do nothing if elevator is not moving
+sgt r1 outsideLevel insideLevel#outside above inside
+TODO: Check if action is available because direction has changed
 j ra
