@@ -5,6 +5,8 @@ define Kd 0 # derivative factor
 define LowerLimit 0 # clamping lower PID output
 define UpperLimit 100 # clamping upper PID output
 
+define ZeroCelsius 273
+
 define TicksToSkip 3 # Run PID every ticks+1
 
 # globals
@@ -20,8 +22,9 @@ jal PIDInitialize
 
 loop:
 move r2 TicksToSkip
-l r0 TemperatureDial Ratio
+l r0 TemperatureDial Setting
 l r1 GasSensor Temperature
+sub r1 r1 ZeroCelsius
 jal PIDCompute
 s Pump Setting r0
 wait:
