@@ -16,6 +16,7 @@ alias LastError r14
 alias TemperatureDial d0 # the set point
 alias GasSensor d1 # the process variable
 alias Pump d2 # actuator
+alias Heater d3
 
 start:
 jal PIDInitialize
@@ -25,8 +26,14 @@ move r2 TicksToSkip
 l r0 TemperatureDial Setting
 l r1 GasSensor Temperature
 sub r1 r1 ZeroCelsius
+ble r1 r0 heat
 jal PIDCompute
+s Heater On 0
 s Pump Setting r0
+j wait
+heat:
+s Heater On 1
+s Pump Setting 0
 wait:
 yield
 sub r2 r2 1
