@@ -20,6 +20,7 @@ start:
 jal PIDInitialize
 
 loop:
+s Generator On 1
 move r2 TicksToSkip
 l r0 PowerPID Setting
 #move r0 SP
