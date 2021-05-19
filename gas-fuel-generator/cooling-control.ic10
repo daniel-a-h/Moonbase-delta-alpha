@@ -1,4 +1,4 @@
-define Kp 1 # proportional factor
+define Kp -5 # proportional factor
 define Ki 0 # integral factor
 define Kd 0 # derivative factor
 
