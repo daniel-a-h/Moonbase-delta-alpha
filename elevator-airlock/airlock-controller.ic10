@@ -10,8 +10,8 @@ alias vent d5
 
 alias cycleRequired r12 # 1 if cycle is needed
 alias targetPressure r13
-alias pressureDiff r14# 1 if there is a pressure dif
-alias direction r15# 0 = out, 1 = in, set in cycle
+alias pressureDiff r14# 1 if  pressure dif
+alias cycleInside r15# 0 = out, 1 = in, set in cycle
 
 Init:
 s vent On 0
@@ -31,29 +31,69 @@ beqz cycleRequired AfterCycle
 jal CycleAirlock
 AfterCycle:
 jal FinishCycle
+yield
 j Loop
 
 FinishCycle:
+l r0 airlockGasSensor Pressure
+and r1 r0 cycleInside # Pressure and cyclieInside = 0 ?
+beqz r1 depressurized # Then it's depressurized
+sge r1 r0 targetPressure #Pressure > targetPressure?
+bgtz r1 pressurized #Then it's pressurized
+j ra
+s insideDoor Lock 0
+s insideDoor Lock 0
+s vent On 0
+depressurized:
+s outsideDoor Open 1
+j finalize
+pressurized:
+s insideDoor Open 1
+finalize:
 j ra
 
 DetectDoorAction:
+l r0 insideDoor Setting
+l r1 insideDoor Open
+sgt cycleRequired r0 r1
+l r0 outsideDoor Setting
+l r1 outsideDoor Open
+sgt r1 r0 r1
+or cycleRequired cycleRequired r1
 j ra
 
 CycleAirlock:
+push ra
+jal SetTagetPressure
+pop ra
 #Close and Lock doors
+s insideDoor Open 0
+s outsideDoor Open 0
+s insideDoor Lock 1
+s insideDoor Lock 1
+move cycleRequired 0
+xor cycleInside cycleInside 1
+s vent Mode cycleInside #TODO: one line above?
+s vent On 1
 j ra
-
 
 SetTagetPressure:
 l targetPressure insideGasSensor Pressure
-mul targetPressure targetPressure 0.97 
-#Set to 97% of Target Pressure
+mul targetPressure targetPressure 0.97 #aim for 97% of inside pressure
 j ra
 
 DetectElevatorAction:
+move r3 0
 #Check current direction, set cycleRequired etc
 l r0 elevator ElevatorSpeed 
 beqz r0 ra# Do nothing if elevator is not moving
-sgt r1 outsideLevel insideLevel#outside above inside
-TODO: Check if action is available because direction has changed
+#action is required if 
+#the sum of direction and r0 = -1 or r0 = 2
+add r3 r0 cycleInside
+sltz cycleRequired r3
+seq r3 r3 2
+or cycleRequired cycleRequired r3
+#if r1=1 -> reverse the result
+sgt r1 insideLevel outsideLevel#inside over outside
+xor cycleRequired cycleRequired r1
 j ra
