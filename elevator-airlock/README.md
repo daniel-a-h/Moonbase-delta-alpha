@@ -1,7 +1,7 @@
 # Elevator Airlock
 
 Elevator Airlock that supports
- - Max 2 Levels
+ - Max 2 levels
  - Vaccuum to Atmo, no Atmo to Atmo
  - Automatic detection of inside pressure
 

@@ -1,12 +1,13 @@
 define insideLevel 0
 define outsideLevel 7
 
+define aciveVentHash 5 #ToDo: find correct hash
+
 alias elevator d0
 alias insideGasSensor d1
 alias airlockGasSensor d2
 alias insideDoor d3
 alias outsideDoor d4
-alias vent d5
 
 alias cycleRequired r12 # 1 if cycle is needed
 alias targetPressure r13
@@ -14,8 +15,8 @@ alias pressureDiff r14# 1 if  pressure dif
 alias cycleInside r15# 0 = out, 1 = in, set in cycle
 
 Init:
-s vent On 0
-s vent ExternalPressure 0
+sb aciveVentHash On 0
+sb aciveVentHash ExternalPressure 0
 s insideDoor Mode 1 #Control by IC
 s outsideDoor Mode 1 # Control by IC
 s insideDoor Open 0
@@ -73,8 +74,8 @@ s insideDoor Lock 1
 s insideDoor Lock 1
 move cycleRequired 0
 xor cycleInside cycleInside 1
-s vent Mode cycleInside #TODO: one line above?
-s vent On 1
+sb aciveVentHash Mode cycleInside #TODO: one line above?
+sb aciveVentHash On 1
 j ra
 
 SetTagetPressure:
