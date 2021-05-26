@@ -1,0 +1,100 @@
+define insideLevel 0
+define outsideLevel 7
+
+define aciveVentHash 5 #ToDo: find correct hash
+
+alias elevator d0
+alias insideGasSensor d1
+alias airlockGasSensor d2
+alias insideDoor d3
+alias outsideDoor d4
+
+alias cycleRequired r12 # 1 if cycle is needed
+alias targetPressure r13
+alias pressureDiff r14# 1 if  pressure dif
+alias cycleInside r15# 0 = out, 1 = in, set in cycle
+
+Init:
+sb aciveVentHash On 0
+sb aciveVentHash ExternalPressure 0
+s insideDoor Mode 1 #Control by IC
+s outsideDoor Mode 1 # Control by IC
+s insideDoor Open 0
+s outsideDoor Open 1
+s elevator ElevatorLevel outsideLevel
+#We are unpressurized and open to outside
+#elevator is on outside level
+
+Loop:
+jal DetectElevatorAction
+jal DetectDoorAction
+beqz cycleRequired AfterCycle
+jal CycleAirlock
+AfterCycle:
+jal FinishCycle
+yield
+j Loop
+
+FinishCycle:
+l r0 airlockGasSensor Pressure
+and r1 r0 cycleInside # Pressure and cyclieInside = 0 ?
+beqz r1 depressurized # Then it's depressurized
+sge r1 r0 targetPressure #Pressure > targetPressure?
+bgtz r1 pressurized #Then it's pressurized
+j ra
+s insideDoor Lock 0
+s insideDoor Lock 0
+s vent On 0
+depressurized:
+s outsideDoor Open 1
+j finalize
+pressurized:
+s insideDoor Open 1
+finalize:
+j ra
+
+DetectDoorAction:
+l r0 insideDoor Setting
+l r1 insideDoor Open
+sgt cycleRequired r0 r1
+l r0 outsideDoor Setting
+l r1 outsideDoor Open
+sgt r1 r0 r1
+or cycleRequired cycleRequired r1
+j ra
+
+CycleAirlock:
+push ra
+jal SetTagetPressure
+pop ra
+#Close and Lock doors
+s insideDoor Open 0
+s outsideDoor Open 0
+s insideDoor Lock 1
+s insideDoor Lock 1
+move cycleRequired 0
+xor cycleInside cycleInside 1
+sb aciveVentHash Mode cycleInside #TODO: one line above?
+sb aciveVentHash On 1
+j ra
+
+SetTagetPressure:
+l targetPressure insideGasSensor Pressure
+mul targetPressure targetPressure 0.97 #aim for 97% of inside pressure
+j ra
+
+DetectElevatorAction:
+move r3 0
+#Check current direction, set cycleRequired etc
+l r0 elevator ElevatorSpeed 
+beqz r0 ra# Do nothing if elevator is not moving
+#action is required if 
+#the sum of direction and r0 = -1 or r0 = 2
+add r3 r0 cycleInside
+sltz cycleRequired r3
+seq r3 r3 2
+or cycleRequired cycleRequired r3
+#if r1=1 -> reverse the result
+sgt r1 insideLevel outsideLevel#inside over outside
+xor cycleRequired cycleRequired r1
+j ra
