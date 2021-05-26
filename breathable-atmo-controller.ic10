@@ -1,0 +1,34 @@
+alias o2pump d0
+alias co2pump d1
+alias npump d2
+alias gasSensor d3
+
+alias o2Ratio r0
+alias co2Ratio r1
+alias nRatio r2
+alias internalPressure r3
+alias o2PumpEnable r4
+alias co2PumpEnable r5
+alias nPumpEnable r6
+
+define targetO2Ratio 0.2
+define targetCo2Ratio 0.01
+define targetNRatio 0.79
+
+loop:
+l o2Ratio gasSensor RatioOxygen
+l co2Ratio gasSensor RatioCarbonDioxide
+l nRatio gasSensor RatioNitrogen
+l internalPressure gasSensor Pressure
+
+slt o2PumpEnable o2Ratio targetO2Ratio
+slt co2PumpEnable co2Ratio targetCo2Ratio
+slt nPumpEnable nRatio targetNRatio
+
+s o2pump On o2PumpEnable
+s co2pump On co2PumpEnable
+s npump On nPumpEnable
+
+yield
+
+j loop
