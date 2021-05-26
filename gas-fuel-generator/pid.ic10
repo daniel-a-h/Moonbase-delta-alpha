@@ -1,0 +1,69 @@
+define Kp 1 # proportional factor
+define Ki 0 # integral factor
+define Kd 0 # derivative factor
+
+define LowerLimit ??? # clamping lower PID output
+define UpperLimit ??? # clamping upper PID output
+
+define TicksToSkip 3 # for running the PID at a constant managaeable frequency
+
+alias SP d0 # the set point
+
+# globals
+alias ErrorSum r15
+alias LastError r14
+
+# PID
+PIDInitialize:
+move ErrorSum 0
+move LastError 0
+
+j ra
+
+PIDCompute:
+# Assume SP in r0
+# Assume PV in r1
+push r10
+push r11
+push r12
+
+# Calc error (r12) and (error - LastError) (r11)
+move r12 0
+sub r12 r0 r1 # error = SP - PV
+sub r11 r12 LastError
+# Update  ErrorSum, LastError
+add ErrorSum ErrorSum r12
+move LastError r12
+
+# clamp integral
+bgt UpperLimit ErrorSum PID_no_upper_clamp_integral
+move ErrorSum UpperLimit
+PID_no_upper_clamp_integral:
+blt LowerLimit ErrorSum PID_no_lower_clamp_integral
+move ErrorSum LowerLimit
+PID_no_lower_clamp_integral:
+
+# PID (r12) = Kp * error
+mul r12 Kp r12
+
+# PID (r12) += Kd * (error - LastError) (r11)
+mul r10 Kd r11
+add r12 r12 r10
+
+# PID += Ki * ErrorSum
+mul r10 Ki ErrorSum
+add r12 r12 r10
+
+# clamp output
+bgt UpperLimit r12 PID_no_upper_clamp_output
+move r12 UpperLimit
+PID_no_upper_clamp_output:
+blt LowerLimit ErrorSum PID_no_lower_clamp_output
+move r12 LowerLimit
+PID_no_lower_clamp_output:
+
+pop r12
+pop r11
+pop r10
+
+j ra
