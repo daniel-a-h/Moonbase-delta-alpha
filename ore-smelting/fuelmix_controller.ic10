@@ -1,0 +1,38 @@
+alias tank d0
+alias mixer d1
+alias h2analyzer d2
+alias o2analyzer d3
+
+define MAXTEMPERATURE 298
+define MINPRESSURE 100
+define MAXTANKPRESSURE 20000
+
+main:
+yield
+l r2 h2analyzer Pressure
+blt r2 MINPRESSURE disable
+l r2 o2analyzer Pressure
+blt r2 MINPRESSURE disable
+l r2 tank Pressure
+bge r2 MAXTANKPRESSURE disable
+
+l r0 tank Temperature
+bgt r0 MAXTEMPERATURE disable
+
+l r0 h2analyzer Temperature
+l r1 o2analyzer Temperature
+
+mul r2 r0 2
+div r2 r1 r2
+add r2 r2 1
+div r2 100 r2
+
+s db Setting r2
+s mixer Setting r2
+s mixer On 1
+
+j main
+
+disable:
+s mixer On 0
+j main
