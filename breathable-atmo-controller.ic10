@@ -2,6 +2,7 @@ alias o2pump d0
 alias co2pump d1
 alias npump d2
 alias gasSensor d3
+alias activeVent d4
 
 alias o2Ratio r0
 alias co2Ratio r1
@@ -14,6 +15,12 @@ alias nPumpEnable r6
 define targetO2Ratio 0.2
 define targetCo2Ratio 0.01
 define targetNRatio 0.79
+define pressureLimit 130
+
+init:
+s activeVent On 1
+s activeVent PressureExternal 101
+s activeVent Lock 1
 
 loop:
 l o2Ratio gasSensor RatioOxygen
@@ -25,8 +32,18 @@ slt o2PumpEnable o2Ratio targetO2Ratio
 slt co2PumpEnable co2Ratio targetCo2Ratio
 slt nPumpEnable nRatio targetNRatio
 
+sgt r15 internalPressure pressureLimit
+
+and o2PumpEnable o2PumpEnable r15
+xor o2PumpEnable o2PumpEnable 1
 s o2pump On o2PumpEnable
+
+and co2PumpEnable co2PumpEnable r15
+xor co2PumpEnable co2PumpEnable 1
 s co2pump On co2PumpEnable
+
+and nPumpEnable nPumpEnable r15
+xor nPumpEnable nPumpEnable 1
 s npump On nPumpEnable
 
 yield
