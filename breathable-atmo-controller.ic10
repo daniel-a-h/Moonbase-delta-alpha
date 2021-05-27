@@ -37,8 +37,9 @@ slt nPumpEnable nRatio targetNRatio
 move r14 o2PumpEnable
 or r14 co2PumpEnable r14
 or r14 nPumpEnable r14
-#r13 = 1 if pressure enough
+#r13 = 1 if low pressure
 slt r13 internalPressure pressureLowerLimit
+#r12 = 1 if no pumps running and low pressure
 slt r12 r14 r13
 
 or o2PumpEnable o2PumpEnable r12
