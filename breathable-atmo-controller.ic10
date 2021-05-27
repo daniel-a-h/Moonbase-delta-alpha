@@ -15,7 +15,8 @@ alias nPumpEnable r6
 define targetO2Ratio 0.30
 define targetCo2Ratio 0.05
 define targetNRatio 0.60
-define pressureLimit 130
+define pressureUpperLimit 130
+define pressureLowerLimit 101
 
 init:
 s activeVent On 1
@@ -32,16 +33,29 @@ slt o2PumpEnable o2Ratio targetO2Ratio
 slt co2PumpEnable co2Ratio targetCo2Ratio
 slt nPumpEnable nRatio targetNRatio
 
-slt r15 internalPressure pressureLimit
+#r14 = 1 if any pump runs
+move r14 o2PumpEnable
+or r14 co2PumpEnable r14
+or r14 nPumpEnable r14
+#r13 = 1 if pressure enough
+slt r13 internalPressure pressureLowerLimit
+slt r12 r14 r13
+
+or o2PumpEnable o2PumpEnable r12
+or co2PumpEnable co2PumpEnable r12
+or nPumpEnable nPumpEnable r12
+
+slt r15 internalPressure pressureUpperLimit
 
 and o2PumpEnable o2PumpEnable r15
-s o2pump On o2PumpEnable
-
 and co2PumpEnable co2PumpEnable r15
-s co2pump On co2PumpEnable
-
 and nPumpEnable nPumpEnable r15
+
+s o2pump On o2PumpEnable
+s co2pump On co2PumpEnable
 s npump On nPumpEnable
+
+
 
 yield
 
