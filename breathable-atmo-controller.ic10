@@ -12,9 +12,9 @@ alias o2PumpEnable r4
 alias co2PumpEnable r5
 alias nPumpEnable r6
 
-define targetO2Ratio 0.2
-define targetCo2Ratio 0.01
-define targetNRatio 0.79
+define targetO2Ratio 0.30
+define targetCo2Ratio 0.05
+define targetNRatio 0.60
 define pressureLimit 130
 
 init:
@@ -32,18 +32,15 @@ slt o2PumpEnable o2Ratio targetO2Ratio
 slt co2PumpEnable co2Ratio targetCo2Ratio
 slt nPumpEnable nRatio targetNRatio
 
-sgt r15 internalPressure pressureLimit
+slt r15 internalPressure pressureLimit
 
 and o2PumpEnable o2PumpEnable r15
-xor o2PumpEnable o2PumpEnable 1
 s o2pump On o2PumpEnable
 
 and co2PumpEnable co2PumpEnable r15
-xor co2PumpEnable co2PumpEnable 1
 s co2pump On co2PumpEnable
 
 and nPumpEnable nPumpEnable r15
-xor nPumpEnable nPumpEnable 1
 s npump On nPumpEnable
 
 yield
