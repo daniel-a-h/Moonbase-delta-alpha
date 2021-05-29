@@ -1,7 +1,7 @@
 define insideLevel 0
 define outsideLevel 7
 
-define aciveVentHash 5 #ToDo: find correct hash
+define aciveVentHash -842048328	
 
 alias elevator d0
 alias insideGasSensor d1
